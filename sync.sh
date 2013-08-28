@@ -1,18 +1,21 @@
-#!/bin/sh
-function prep {
+#!/bin/bash
+function prep() {
     sudo apt-get install build-essential autoconf automake autotools-dev \
         dh-make debhelper devscripts fakeroot xutils lintian pbuilder
 }
 
-function fontsync {
+function fontsync() {
 
-    if [ ! -d clones/font-awesome/.git ];then
-        git clone https://github.com/FortAwesome/Font-Awesome.git clones/font-awesome
+    PACK_PREFIX=font-awesome
+    REPO=https://github.com/FortAwesome/Font-Awesome.git
+
+    if [ ! -d clones/$PACK_PREFIX-git/.git ];then
+        git clone $REPO clones/$PACK_PREFIX-git
     else
-        (cd clones/font-awesome;git fetch)
+        (cd clones/$PACK_PREFIX-git;git fetch)
     fi
 
-    cd clones/font-awesome
+    cd clones/$PACK_PREFIX-git
 
     local latest=$( git tag -l | tail -n1)
     echo Latest tag is $latest
@@ -20,21 +23,34 @@ function fontsync {
     # checkout latest tag
     git checkout tags/$latest
 
-    # move all dirs (not src) into a tar.gz
-    #RESULT=
-    #for file in *
-    #do
-    #    if [ -d $file ] && [ $file != "src" ];then
-    #        RESULT="$RESULT $file"
-    #    fi
-    #done
+    RESULT=
+    for file in *
+    do
+        if [ -d $file ] && [ $file != "src" ];then
+            RESULT="$RESULT $file"
+        fi
+    done
 
     # tar it
-    echo packing ..
+    PACK=$PACK_PREFIX-${latest#v}
+    echo packing $PACK ..
     
-    tar -czf ../font-awesome-$latest.tar.gz *
+    tar -czf ../$PACK.tar.gz *
     cd ..
+    mkdir -p $PACK
+    cd $PACK
+    tar -xf ../$PACK.tar.gz
+    
+    #inject Makefile
+    cat << __STOP__ > Makefile
+all: # nothing to build
 
+install:;mkdir -p \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v};\
+    cp -r $RESULT \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v}
+__STOP__
+
+    rm debian -rf
+   dh_make -e kf@docstream.no -f ../$PACK.tar.gz
 }
 
 mkdir -p clones
