@@ -21,19 +21,23 @@ function fontsync {
     git checkout tags/$latest
 
     # move all dirs (not src) into a tar.gz
-    RESULT=
-    for file in *
-    do
-        if [ -d $file ] && [ $file != "src" ];then
-            RESULT="$RESULT $file"
-        fi
-    done
+    #RESULT=
+    #for file in *
+    #do
+    #    if [ -d $file ] && [ $file != "src" ];then
+    #        RESULT="$RESULT $file"
+    #    fi
+    #done
+
     # tar it
-    echo packing $RESULT ..
+    echo packing ..
     
-    tar -czf ../font-awesome-$latest.tar.gz $RESULT 
+    tar -czf ../font-awesome-$latest.tar.gz *
+    cd ..
+
 }
 
 mkdir -p clones
 prep
 fontsync
+echo $PWD
