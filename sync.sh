@@ -23,6 +23,7 @@ function fontsync() {
     # checkout latest tag
     git checkout tags/$latest
 
+    # skip src dir, otherwise all dirs == result
     RESULT=
     for file in *
     do
@@ -30,6 +31,16 @@ function fontsync() {
             RESULT="$RESULT $file"
         fi
     done
+
+    #inject Makefile
+    cat << __STOP__ > Makefile
+
+all: # nothing to build
+
+install:;mkdir -p \$(DESTDIR)/var/share/$PACK_PREFIX/${latest#v};\
+    cp -r $RESULT \$(DESTDIR)/var/share/$PACK_PREFIX/${latest#v}
+__STOP__
+
 
     # tar it
     PACK=$PACK_PREFIX-${latest#v}
@@ -43,19 +54,10 @@ function fontsync() {
 
     rm debian -rf
    dh_make -e kf@docstream.no -f ../$PACK.tar.gz -indep --createorig 
-
-    #inject Makefile
-    cat << __STOP__ >> debian/rules
-
-all: # nothing to build
-
-install:;mkdir -p \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v};\
-    cp -r $RESULT \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v}
-__STOP__
+   dpkg-buildpackage
 
     }
 
 mkdir -p clones
 prep
 fontsync
-echo $PWD
