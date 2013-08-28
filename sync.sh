@@ -40,18 +40,20 @@ function fontsync() {
     mkdir -p $PACK
     cd $PACK
     tar -xf ../$PACK.tar.gz
-    
+
+    rm debian -rf
+   dh_make -e kf@docstream.no -f ../$PACK.tar.gz -indep --createorig 
+
     #inject Makefile
-    cat << __STOP__ > Makefile
+    cat << __STOP__ >> debian/rules
+
 all: # nothing to build
 
 install:;mkdir -p \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v};\
     cp -r $RESULT \$(DESTDIR)/var/opt/www/$PACK_PREFIX/${latest#v}
 __STOP__
 
-    rm debian -rf
-   dh_make -e kf@docstream.no -f ../$PACK.tar.gz
-}
+    }
 
 mkdir -p clones
 prep
