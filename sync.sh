@@ -4,20 +4,36 @@ function prep {
         dh-make debhelper devscripts fakeroot xutils lintian pbuilder
 }
 
-function font {
+function fontsync {
 
-    if [ ! -d font-awesome/.git ];then
-        git clone https://github.com/FortAwesome/Font-Awesome.git font-awesome
+    if [ ! -d clones/font-awesome/.git ];then
+        git clone https://github.com/FortAwesome/Font-Awesome.git clones/font-awesome
     else
-        (cd font-awesome;git fetch)
+        (cd clones/font-awesome;git fetch)
     fi
 
-    local latest=$(cd font-awesome; git tag -l | tail -n1)
+    cd clones/font-awesome
 
+    local latest=$( git tag -l | tail -n1)
+    echo Latest tag is $latest
 
     # checkout latest tag
-    (cd font-awesome; git checkout tags/$latest)
+    git checkout tags/$latest
+
+    # move all dirs (not src) into a tar.gz
+    RESULT=
+    for file in *
+    do
+        if [ -d $file ] && [ $file != "src" ];then
+            RESULT="$RESULT $file"
+        fi
+    done
+    # tar it
+    echo packing $RESULT ..
+    
+    tar -czf ../font-awesome-$latest.tar.gz $RESULT 
 }
 
+mkdir -p clones
 prep
-font
+fontsync
