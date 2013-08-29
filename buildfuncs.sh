@@ -49,16 +49,19 @@ function _makeOrigTarFromGit()
 
 function _dhMakeIndep()
 {
+    local srcDir=$1
+    local copyright=$2
+    shift;shift
+
     (
-    cd $WORKING_DIR/$1
+    cd $WORKING_DIR/$srcDir
     echo $PWD is curr dir.
-    dh_make --copyright $2 --indep
+    dh_make --copyright $copyright --indep $@
     )
 }
 
 
 mkdir -p $WORKING_DIR
-prep
 export EMAIL=${EMAIL=kfm@docstream.no}
 export DEBFULLNAME=${DEBFULLNAME=Kjetil F-M}
 
@@ -100,27 +103,27 @@ function epub30schemas()
     local rev=301
     local debRev=3.0.1
     local ep3SrcDir=$WORKING_DIR/epub30schemas-$debRev
-    local srcTar=epub30schemas'_'$debRev.orig.tar.gz
     local instFile="$ep3SrcDir/debian/epub30schemas.install"
     local extFilename=epub30-schemas.tar.gz
 
     (
     cd $WORKING_DIR
-    wget http://epub-revision.googlecode.com/svn/trunk/build/$rev/schema/$extFilename
-    mv $extFilename $srcTar
+    if [ ! -f $extFilename ]; then
+         wget http://epub-revision.googlecode.com/svn/trunk/build/$rev/schema/$extFilename
+    fi
     )
 
-    mkdir -p $ep3SrcDir
-    tar -xf $WORKING_DIR/$srcTar -C $ep3SrcDir
+    mkdir -p $ep3SrcDir/data
+    tar -xf $WORKING_DIR/$extFilename -C $ep3SrcDir/data
     
-    _dhMakeIndep epub30schemas-$debRev lgpl 
+    _dhMakeIndep epub30schemas-$debRev lgpl --createorig
 
     echo  ---- POSTFIX STEPs for epub30schemas ----
 
 
     #inject .install file
     cat << __STOP__ > $instFile
-* usr/share/epub30/schemas/$debRev
+data/* usr/share/epub30/schemas/$debRev
 __STOP__
     cat $instFile
 
