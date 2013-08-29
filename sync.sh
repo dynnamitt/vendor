@@ -1,63 +1,78 @@
 #!/bin/bash
+
+
+WORKING_DIR=work
+
+
 function prep() {
+    echo installing debian packs needed for debianization now...
     sudo apt-get install build-essential autoconf automake autotools-dev \
         dh-make debhelper devscripts fakeroot xutils lintian pbuilder
 }
 
-function fontsync() {
+function makeOrigTarFromGit
+{
+    local prefix=$1
+    local repo=$2
 
-    PACK_PREFIX=font-awesome
-    REPO=https://github.com/FortAwesome/Font-Awesome.git
-
-    if [ ! -d clones/$PACK_PREFIX-git/.git ];then
-        git clone $REPO clones/$PACK_PREFIX-git
+    if [ ! -d $WORKING_DIR/$prefix-git/.git ];then
+        git clone $repo $WORKING_DIR/$prefix-git
     else
-        (cd clones/$PACK_PREFIX-git;git fetch)
+        (cd $WORKING_DIR/$prefix-git;git fetch)
     fi
 
-    cd clones/$PACK_PREFIX-git
+    latestTag=$( cd $WORKING_DIR/$prefix-git; git tag -l | tail -n1 )
+    latestVer=${latestTag#[a-zA-Z]}
 
-    local latest=$( git tag -l | tail -n1)
-    echo Latest tag is $latest
-
-    # checkout latest tag
-    git checkout tags/$latest
-
-    # skip src dir, otherwise all dirs == result
-    RESULT=
-    for file in *
-    do
-        if [ -d $file ] && [ $file != "src" ];then
-            RESULT="$RESULT $file"
-        fi
-    done
-
-    #inject Makefile
-    cat << __STOP__ > Makefile
-
-all: # nothing to build
-
-install:;mkdir -p \$(DESTDIR)/var/share/$PACK_PREFIX/${latest#v};\
-    cp -r $RESULT \$(DESTDIR)/var/share/$PACK_PREFIX/${latest#v}
-__STOP__
-
-
-    # tar it
-    PACK=$PACK_PREFIX-${latest#v}
-    echo packing $PACK ..
-    
-    tar -czf ../$PACK.tar.gz *
+    (
+    cd $WORKING_DIR/$prefix-git
+    git archive --format=tar.gz \
+        --prefix="$prefix-$latestVer/" $latestTag \
+        > ../$prefix'_'$latestVer.orig.tar.gz
     cd ..
-    mkdir -p $PACK
-    cd $PACK
-    tar -xf ../$PACK.tar.gz
+    tar -xf $prefix'_'$latestVer.orig.tar.gz
+    )
 
-    rm debian -rf
-   dh_make -e kf@docstream.no -f ../$PACK.tar.gz -indep --createorig 
-   dpkg-buildpackage
+    echo "$latestVer"
 
-    }
+}
 
-mkdir -p clones
+function dhMakeIndep
+{
+    (
+    cd $WORKING_DIR/$1
+    dh_make --copyright $2 --indep
+    )
+}
+
+
+mkdir -p $WORKING_DIR
 prep
-fontsync
+export EMAIL=${EMAIL=kfm@docstream.no}
+export DEBFULLNAME=${DEBFULLNAME=Kjetil F-M}
+
+
+
+#---------------#
+#  fontawesome  #
+#---------------#
+
+fontawesomeVer=$(makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git)
+dhMakeIndep fontawesome-$fontawesomeVer gpl 
+echo  ---- POSTFIX STEPs for fontawesome ----
+
+faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
+instFile="$faSrcDir/debian/fontawesome.install"
+
+#inject .install file
+cat << __STOP__ > $instFile
+less/* usr/share/Font-Awesome/$fontawesomeVer/less
+css/* usr/share/Font-Awesome/$fontawesomeVer/css
+font/* usr/share/Font-Awesome/$fontawesomeVer/font
+scss/* usr/share/Font-Awesome/$fontawesomeVer/scss  
+__STOP__
+cat $instFile
+echo "---- final STEP .. packing fontawesome .. ----"
+(cd $faSrcDir; dpkg-buildpackage -us -uc)
+
+
