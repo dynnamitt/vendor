@@ -145,6 +145,15 @@ function epub30schemas()
     (cd $ep3SrcDir; dpkg-buildpackage -us -uc)
 
 }
+
+#----------#
+#  xopus4  #
+#----------#
+function xopus()
+{
+
+}
+
 echo
-echo Now call one of : 'prep', 'epub30schemas' , 'fontawesome'
+echo Now call one of : 'prep', 'xopus', 'epub30schemas' , 'fontawesome'
 

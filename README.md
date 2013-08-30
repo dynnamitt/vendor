@@ -1,3 +1,7 @@
-h1. 3.parts prosjekter som skal inn på Debian runtime server
+3.parts prosjekter som skal inn på Debian runtime server
+========================================================
 
-Hjelpescript for å lage .deb filer 
+bash funksjoner for å lage .deb filer 
+
+  source ./buildfuncs.sh
+
