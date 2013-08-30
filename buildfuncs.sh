@@ -19,25 +19,32 @@ function _makeOrigTarFromGit()
 {
     local prefix=$1
     local repo=$2
-    local dir=$WORKING_DIR/$prefix-git
+    local gitWD=$prefix-git
+    local dir=$WORKING_DIR/$gitWD
 
-    if [ ! -d $dir/.git ];then
-        git clone $repo $dir
+    if [ ! -d $dir/.git ]
+    then
+        (cd $WORKING_DIR && git clone $repo $gitWD >> /dev/null )
     else
-        (cd $dir && git fetch)
+        (cd $dir && git fetch >> /dev/null )
     fi
 
     latestTag=$( cd $dir && git tag -l | tail -n1 )
     latestVer=${latestTag#[a-zA-Z]}
 
+    # tar.gz via git
     (
-    cd $dir
-    git archive --format=tar.gz \
+    cd $dir && \
+        git archive --format=tar.gz \
         --prefix="$prefix-$latestVer/" $latestTag \
         > ../$prefix'_'$latestVer.orig.tar.gz
-    cd .. && tar -xf $prefix'_'$latestVer.orig.tar.gz
     )
 
+    # untar
+    (
+    cd $WORKING_DIR && \
+        tar -xf $prefix'_'$latestVer.orig.tar.gz
+    )
 
     echo "$latestVer"
 
@@ -118,11 +125,10 @@ function prep()
 function fontawesome()
 {
 
-    local fontawesomeVer=$(_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git)
+    local fontawesomeVer=`_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git`
     local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
-    echo found $fontawesomeVer 
     _dhMakeIndep fontawesome-$fontawesomeVer gpl 
     echo  ---- POSTFIX STEPs for fontawesome $fontawesomeVer ----
 
