@@ -19,24 +19,25 @@ function _makeOrigTarFromGit()
 {
     local prefix=$1
     local repo=$2
+    local dir=$WORKING_DIR/$prefix-git
 
-    if [ ! -d $WORKING_DIR/$prefix-git/.git ];then
-        git clone $repo $WORKING_DIR/$prefix-git
+    if [ ! -d $dir/.git ];then
+        git clone $repo $dir
     else
-        (cd $WORKING_DIR/$prefix-git;git fetch)
+        (cd $dir && git fetch)
     fi
 
-    latestTag=$( cd $WORKING_DIR/$prefix-git; git tag -l | tail -n1 )
+    latestTag=$( cd $dir && git tag -l | tail -n1 )
     latestVer=${latestTag#[a-zA-Z]}
 
     (
-    cd $WORKING_DIR/$prefix-git
+    cd $dir
     git archive --format=tar.gz \
         --prefix="$prefix-$latestVer/" $latestTag \
         > ../$prefix'_'$latestVer.orig.tar.gz
-    cd ..
-    tar -xf $prefix'_'$latestVer.orig.tar.gz
+    cd .. && tar -xf $prefix'_'$latestVer.orig.tar.gz
     )
+
 
     echo "$latestVer"
 
@@ -58,6 +59,38 @@ function _dhMakeIndep()
     )
 }
 
+#---------------#
+#  priv helper  #
+#---------------#
+function _postAdjustmentsForStaticProjects()
+{
+    local project=$1
+    local dest=$2
+    local ver=$3
+    local lsParams=${4}
+    local projectSrcDir=$WORKING_DIR/$project-$ver
+    local instFile=$projectSrcDir/debian/$project.install
+
+    echo ---- POSTFIX STEPs for $project ----
+
+    #inject .install file
+    cat <(cd $projectSrcDir; ls -1 $lsParams \
+        | grep -v debian \
+        | awk "{print \$1 \" $dest/$ver\"}" \
+        ) > $instFile
+
+    cat $instFile
+
+    echo ---- final STEP .. packing $project ----
+
+    (cd $projectSrcDir; dpkg-buildpackage -us -uc)
+}
+
+
+
+#-----------#
+#  globals  #
+#-----------#
 
 mkdir -p $WORKING_DIR
 export EMAIL=${EMAIL=kfm@docstream.no}
@@ -70,8 +103,11 @@ export DEBFULLNAME=${DEBFULLNAME=Kjetil F-M}
 function prep() 
 {
     echo installing debian packs needed for debianization now...
-    sudo apt-get install wget build-essential autoconf automake autotools-dev \
-        dh-make debhelper devscripts fakeroot xutils lintian pbuilder
+    sudo apt-get install \
+        unzip wget build-essential \
+        autoconf automake autotools-dev \
+        dh-make debhelper devscripts fakeroot \
+        xutils lintian pbuilder
 }
 
 
@@ -86,6 +122,7 @@ function fontawesome()
     local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
+    echo found $fontawesomeVer 
     _dhMakeIndep fontawesome-$fontawesomeVer gpl 
     echo  ---- POSTFIX STEPs for fontawesome $fontawesomeVer ----
 
@@ -111,38 +148,26 @@ function epub30schemas()
 {
     local rev=301
     local debRev=3.0.1
+    local svn=http://epub-revision.googlecode.com
     local ep3SrcDir=$WORKING_DIR/epub30schemas-$debRev
-    local ep3origTar=epub30schemas_$debRev.orig.tar.gz
-    local instFile="$ep3SrcDir/debian/epub30schemas.install"
+    local epubOrigTar=epub30schemas_$debRev.orig.tar.gz
     local extFilename=epub30-schemas.tar.gz
 
     (
-    cd $WORKING_DIR
-    if [ ! -f $ep3origTar ]
+    cd $WORKING_DIR && \
+    if [ ! -f $epubOrigTar ]
     then
-         wget http://epub-revision.googlecode.com/svn/trunk/build/$rev/schema/$extFilename && \
-         mv $extFilename $ep3origTar
+         wget $svn/svn/trunk/build/$rev/schema/$extFilename
+         mv $extFilename $epubOrigTar
     fi
     )
 
     mkdir -p $ep3SrcDir
-    tar -xf $WORKING_DIR/$ep3origTar -C $ep3SrcDir
+    tar -xf $WORKING_DIR/$epubOrigTar -C $ep3SrcDir
     
     _dhMakeIndep epub30schemas-$debRev lgpl 
 
-    echo  ---- POSTFIX STEPs for epub30schemas ----
-
-    #inject .install file
-    cat <(cd $ep3SrcDir; ls -1 \
-        | grep -v debian \
-        | awk "{print \$1 \" usr/share/epub30/schemas/$debRev\"}" \
-        ) > $instFile
-
-    cat $instFile
-
-    echo $PWD 2
-    echo "---- final STEP .. packing epub30schemas ----"
-    (cd $ep3SrcDir; dpkg-buildpackage -us -uc)
+    _postAdjustmentsForStaticProjects epub30schemas 'usr/share/xopus4' $debRev 
 
 }
 
@@ -151,6 +176,33 @@ function epub30schemas()
 #----------#
 function xopus()
 {
+    local url=http://xopus.com/files/download
+    local debRev=4.4.1
+    local zip="Xopus $debRev.zip"
+    local topDirInZip=Xopus
+    local xopusSrcDir=$WORKING_DIR/xopus-$debRev
+    local xopusOrigTar=xopus_$debRev.orig.tar.gz
+
+    (
+    cd $WORKING_DIR && \
+    if [ ! -f $zip ]
+    then
+        wget "$url/$zip" 
+        unzip -q $zip
+    fi
+    )
+    
+    (cd $WORKING_DIR/$topDirInZip && \
+        tar -czf ../$xopusOrigTar *)
+
+    rm -rf $WORKING_DIR/$topDirInZip 
+    mkdir -p $xopusSrcDir
+    tar -xf $WORKING_DIR/$xopusOrigTar -C $xopusSrcDir
+    
+
+    _dhMakeIndep xopus-$debRev blank
+
+    _postAdjustmentsForStaticProjects xopus 'usr/share/xopus4' $debRev 
 
 }
 
