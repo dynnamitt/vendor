@@ -3,11 +3,8 @@
 
 
 # HOWTO USE THIS FILE? 
-# ... source it , then call one of these top functions:
+# ... source it , then call one of the 'global' functions
 #
-#  prep
-#  fontawesome
-#  epub30schemas
 
 
 WORKING_DIR=work
@@ -130,6 +127,9 @@ function fontawesome()
     local instFile="$faSrcDir/debian/fontawesome.install"
 
     _dhMakeIndep fontawesome-$fontawesomeVer gpl 
+
+
+    # TODO: make generic
     echo  ---- POSTFIX STEPs for fontawesome $fontawesomeVer ----
 
   
