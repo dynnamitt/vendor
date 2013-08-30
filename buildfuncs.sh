@@ -5,21 +5,16 @@
 # HOWTO USE THIS FILE? 
 # ... source it , then call one of these top functions:
 #
-#   prep
+#  prep
 #  fontawesome
 #  epub30schemas
 
 
 WORKING_DIR=work
 
-
-function prep() 
-{
-    echo installing debian packs needed for debianization now...
-    sudo apt-get install wget build-essential autoconf automake autotools-dev \
-        dh-make debhelper devscripts fakeroot xutils lintian pbuilder
-}
-
+#------------------#
+#  private helper  #
+#------------------#
 function _makeOrigTarFromGit()
 {
     local prefix=$1
@@ -47,6 +42,9 @@ function _makeOrigTarFromGit()
 
 }
 
+#------------------#
+#  private helper  #
+#------------------#
 function _dhMakeIndep()
 {
     local srcDir=$1
@@ -64,6 +62,17 @@ function _dhMakeIndep()
 mkdir -p $WORKING_DIR
 export EMAIL=${EMAIL=kfm@docstream.no}
 export DEBFULLNAME=${DEBFULLNAME=Kjetil F-M}
+
+#--------#
+#  prep  #
+#--------#
+
+function prep() 
+{
+    echo installing debian packs needed for debianization now...
+    sudo apt-get install wget build-essential autoconf automake autotools-dev \
+        dh-make debhelper devscripts fakeroot xutils lintian pbuilder
+}
 
 
 
@@ -103,36 +112,39 @@ function epub30schemas()
     local rev=301
     local debRev=3.0.1
     local ep3SrcDir=$WORKING_DIR/epub30schemas-$debRev
+    local ep3origTar=epub30schemas_$debRev.orig.tar.gz
     local instFile="$ep3SrcDir/debian/epub30schemas.install"
     local extFilename=epub30-schemas.tar.gz
 
     (
     cd $WORKING_DIR
-    if [ ! -f $extFilename ]; then
-         wget http://epub-revision.googlecode.com/svn/trunk/build/$rev/schema/$extFilename
+    if [ ! -f $ep3origTar ]
+    then
+         wget http://epub-revision.googlecode.com/svn/trunk/build/$rev/schema/$extFilename && \
+         mv $extFilename $ep3origTar
     fi
     )
 
-    mkdir -p $ep3SrcDir/data
-    tar -xf $WORKING_DIR/$extFilename -C $ep3SrcDir/data
+    mkdir -p $ep3SrcDir
+    tar -xf $WORKING_DIR/$ep3origTar -C $ep3SrcDir
     
-    _dhMakeIndep epub30schemas-$debRev lgpl --createorig
+    _dhMakeIndep epub30schemas-$debRev lgpl 
 
     echo  ---- POSTFIX STEPs for epub30schemas ----
 
-
     #inject .install file
-    cat << __STOP__ > $instFile
-data/* usr/share/epub30/schemas/$debRev
-__STOP__
+    cat <(cd $ep3SrcDir; ls -1 \
+        | grep -v debian \
+        | awk "{print \$1 \" usr/share/epub30/schemas/$debRev\"}" \
+        ) > $instFile
+
     cat $instFile
 
+    echo $PWD 2
     echo "---- final STEP .. packing epub30schemas ----"
     (cd $ep3SrcDir; dpkg-buildpackage -us -uc)
 
 }
-echo
-echo
 echo
 echo Now call one of : 'prep', 'epub30schemas' , 'fontawesome'
 
