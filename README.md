@@ -3,5 +3,5 @@
 
 bash funksjoner for å lage .deb filer 
 
-  source ./buildfuncs.sh
+	 source ./buildfuncs.sh
 
