@@ -173,7 +173,7 @@ function epub30schemas()
     
     _dhMakeIndep epub30schemas-$debRev lgpl 
 
-    _postAdjustmentsForStaticProjects epub30schemas 'usr/share/xopus4' $debRev 
+    _postAdjustmentsForStaticProjects epub30schemas 'usr/share/epub30' $debRev 
 
 }
 
