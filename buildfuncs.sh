@@ -212,6 +212,27 @@ function xopus()
 
 }
 
+funcion solr4()
+{
+    local ver=4.4.0
+    local debVer=$ver
+    local url=http://apache.vianett.no/lucene/solr/$ver
+    local tgz=solr-$ver.tgz
+    local topDirInZip=solr-$ver
+
+   (
+    cd $WORKING_DIR && \
+    if [ ! -f $tgz ]
+    then
+        wget "$url/$tgz" 
+        tar -xzf $tgz
+    fi
+    )
+}
+
+
+
+
 echo
-echo Now call one of : 'prep', 'xopus', 'epub30schemas' , 'fontawesome'
+echo Now call one of : 'prep', 'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
 
