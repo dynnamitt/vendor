@@ -239,7 +239,7 @@ funcion solr4()
 
 	tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
 
-	-dhMakeIndep solr-$debVer apache
+	_dhMakeIndep solr-$debVer apache
 
 	_postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
 }
