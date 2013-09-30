@@ -218,6 +218,8 @@ funcion solr4()
     local debVer=$ver
     local url=http://apache.vianett.no/lucene/solr/$ver
     local tgz=solr-$ver.tgz
+	local solrSrcDir=$WORKING_DIR/solr-$debVer
+	local solrOrigTar=solr_$debVer.orig.tar.gz
     local topDirInZip=solr-$ver
 
    (
@@ -228,6 +230,18 @@ funcion solr4()
         tar -xzf $tgz
     fi
     )
+
+	(cd $WORKING_DIR/$topDirInZip && \
+		tar -czf ../$solrOrigTar *)
+
+	rm -rf $WORKING_DIR/$topDirInZip
+	mkdir -p $solrSrcDir
+
+	tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
+
+	-dhMakeIndep solr-$debVer apache
+
+	_postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
 }
 
 
