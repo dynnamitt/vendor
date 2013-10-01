@@ -198,8 +198,16 @@ function xopus()
     fi
     )
     
-    (cd $WORKING_DIR/$topDirInZip && \
-        tar -czf ../$xopusOrigTar *)
+    (
+        cd $WORKING_DIR/$topDirInZip
+        # patch
+        pf="xopus/xopus.html"
+        sed -e '/<\/head>/r ../../xopus-html-patch.htm' -e 'x;$G' "$pf" \
+            > "$pf".patched
+        mv "$pf".patched "$pf"
+        # tar it ALL into orig.
+        tar -czf ../$xopusOrigTar *
+    )
 
     rm -rf $WORKING_DIR/$topDirInZip 
     mkdir -p $xopusSrcDir
@@ -227,7 +235,7 @@ funcion solr4()
     if [ ! -f $tgz ]
     then
         wget "$url/$tgz" 
-        tar -xzf $tgz
+        tar -xvzf $tgz
     fi
     )
 
