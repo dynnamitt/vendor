@@ -215,7 +215,7 @@ function xopus()
 funcion solr4()
 {
     local ver=4.4.0
-    local debVer=$ver
+    local debVer=4
     local url=http://apache.vianett.no/lucene/solr/$ver
     local tgz=solr-$ver.tgz
 	local solrSrcDir=$WORKING_DIR/solr-$debVer
