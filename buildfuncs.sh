@@ -60,6 +60,12 @@ function _dhMakeIndep()
     cd $WORKING_DIR/$srcDir
     echo $PWD is curr dir.
     dh_make --copyright $copyright --indep $@
+    cd debian
+    rm *ex
+    sed -e 's/^Section.*/Section: misc/'\
+      -e 's/^Homepage.*/Homepage: www.docstream.no/' control \
+      > control.fixed
+    mv control.fixed control
     )
 }
 
