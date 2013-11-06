@@ -8,6 +8,7 @@
 
 
 WORKING_DIR=work
+TOOLS=/opt/ds/tools
 
 #------------------#
 #  private helper  #
@@ -54,17 +55,22 @@ function _dhMakeIndep()
 {
     local srcDir=$1
     local copyright=$2
-    shift;shift
+    local desc=$3
+    shift;shift;shift
 
     (
     cd $WORKING_DIR/$srcDir
-    echo $PWD is curr dir.
+    echo -e "\n\n *** $(basename $PWD) is curr dir:\n"
     dh_make --copyright $copyright --indep $@
-    cd debian
-    rm *ex
-    sed -e 's/^Section.*/Section: misc/'\
-      -e 's/^Homepage.*/Homepage: www.docstream.no/' control \
-      > control.fixed
+    echo -e "\n -- append data into 'control' file --\n"
+    cd debian && \
+    rm *ex ; \
+    head -n-1 control \
+      | sed -r "s/^(Section:).*/\1 misc/" \
+      | sed -r "s/^(Homepage:).*/\1 www.docstream.no/" \
+      | sed -r "s/^(Description:).*/\1 $desc/" \
+      > control.fixed ; \
+    echo $desc >> control.fixed ; \
     mv control.fixed control
     )
 }
@@ -132,7 +138,7 @@ function fontawesome()
     local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
-    _dhMakeIndep fontawesome-$fontawesomeVer gpl 
+    _dhMakeIndep fontawesome-$fontawesomeVer gpl "v $fontawesomeVer css/icon framework"
 
 
     # TODO: make generic
@@ -177,7 +183,8 @@ function epub30schemas()
     mkdir -p $ep3SrcDir
     tar -xf $WORKING_DIR/$epubOrigTar -C $ep3SrcDir
     
-    _dhMakeIndep epub30schemas-$debRev lgpl 
+    _dhMakeIndep epub30schemas-$debRev lgpl \
+      "v $debRev schema set from the standards body"
 
     _postAdjustmentsForStaticProjects epub30schemas 'usr/share/epub30' $debRev 
 
@@ -220,7 +227,7 @@ function xopus()
     tar -xf $WORKING_DIR/$xopusOrigTar -C $xopusSrcDir
     
 
-    _dhMakeIndep xopus-$debRev blank
+    _dhMakeIndep xopus-$debRev blank "v $debRev js+assets files"
 
     _postAdjustmentsForStaticProjects xopus 'usr/share/xopus4' $debRev 
 
@@ -228,35 +235,35 @@ function xopus()
 
 funcion solr4()
 {
-    local ver=4.4.0
-    local debVer=4
-    local url=http://apache.vianett.no/lucene/solr/$ver
-    local tgz=solr-$ver.tgz
-	local solrSrcDir=$WORKING_DIR/solr-$debVer
-	local solrOrigTar=solr_$debVer.orig.tar.gz
-    local topDirInZip=solr-$ver
+  local ver=4.4.0
+  local debVer=4
+  local url=http://apache.vianett.no/lucene/solr/$ver
+  local tgz=solr-$ver.tgz
+  local solrSrcDir=$WORKING_DIR/solr-$debVer
+  local solrOrigTar=solr_$debVer.orig.tar.gz
+  local topDirInZip=solr-$ver
 
-   (
-    cd $WORKING_DIR && \
+  (
+  cd $WORKING_DIR && \
     if [ ! -f $tgz ]
     then
-        wget "$url/$tgz" 
-        tar -xvzf $tgz
+      wget "$url/$tgz" 
+      tar -xvzf $tgz
     fi
     )
 
-	(cd $WORKING_DIR/$topDirInZip && \
-		tar -czf ../$solrOrigTar *)
+    (cd $WORKING_DIR/$topDirInZip && \
+      tar -czf ../$solrOrigTar *)
 
-	rm -rf $WORKING_DIR/$topDirInZip
-	mkdir -p $solrSrcDir
+    rm -rf $WORKING_DIR/$topDirInZip
+    mkdir -p $solrSrcDir
 
-	tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
+    tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
 
-	_dhMakeIndep solr-$debVer apache
+    _dhMakeIndep solr-$debVer apache "v $debVer solr jetty pack"
 
-	_postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
-}
+    _postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
+  }
 
 
 
