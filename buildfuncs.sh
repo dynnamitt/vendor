@@ -64,13 +64,13 @@ function _dhMakeIndep()
     dh_make --copyright $copyright --indep $@
     echo -e "\n -- append data into 'control' file --\n"
     cd debian && \
-    rm *ex ; \
+    rm *ex && \
     head -n-1 control \
       | sed -r "s/^(Section:).*/\1 misc/" \
       | sed -r "s/^(Homepage:).*/\1 www.docstream.no/" \
       | sed -r "s/^(Description:).*/\1 $desc/" \
-      > control.fixed ; \
-    echo $desc >> control.fixed ; \
+      > control.fixed && \
+    echo -e "   $desc" >> control.fixed && \
     mv control.fixed control
     )
 }
@@ -133,25 +133,21 @@ function prep()
 #---------------#
 function fontawesome()
 {
-
+    clean_dirs
     local fontawesomeVer=`_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git`
     local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
-    _dhMakeIndep fontawesome-$fontawesomeVer gpl "v $fontawesomeVer css/icon framework"
+    _dhMakeIndep fontawesome-$fontawesomeVer gpl "v $fontawesomeVer of css+icon framework"
+    
 
-
-    # TODO: make generic
     echo  ---- POSTFIX STEPs for fontawesome $fontawesomeVer ----
-
-  
-    #inject .install file
-    cat << __STOP__ > $instFile
-less/* usr/share/Font-Awesome/$fontawesomeVer/less
-css/* usr/share/Font-Awesome/$fontawesomeVer/css
-font/* usr/share/Font-Awesome/$fontawesomeVer/font
-scss/* usr/share/Font-Awesome/$fontawesomeVer/scss  
-__STOP__
+    
+    dirs=( $(cd $faSrcDir; ls -l | awk ' /^d/ {print $9}' | grep -v debian| grep -v src) )
+    for d in ${dirs[@]}
+    do 
+      echo "$d/* usr/share/Font-Awesome/$fontawesomeVer/$d" >> $instFile
+    done
     cat $instFile
 
     echo "---- final STEP .. packing fontawesome .. ----"
@@ -164,6 +160,7 @@ __STOP__
 #-------------------#
 function epub30schemas()
 {
+    clean_dirs
     local rev=301
     local debRev=3.0.1
     local svn=http://epub-revision.googlecode.com
@@ -184,7 +181,7 @@ function epub30schemas()
     tar -xf $WORKING_DIR/$epubOrigTar -C $ep3SrcDir
     
     _dhMakeIndep epub30schemas-$debRev lgpl \
-      "v $debRev schema set from the standards body"
+      "v $debRev of schema-set from the standards body"
 
     _postAdjustmentsForStaticProjects epub30schemas 'usr/share/epub30' $debRev 
 
@@ -195,6 +192,7 @@ function epub30schemas()
 #----------#
 function xopus()
 {
+    clean_dirs
     local url=http://xopus.com/files/download
     local debRev=4.4.1
     local zip="Xopus $debRev.zip"
@@ -227,7 +225,7 @@ function xopus()
     tar -xf $WORKING_DIR/$xopusOrigTar -C $xopusSrcDir
     
 
-    _dhMakeIndep xopus-$debRev blank "v $debRev js+assets files"
+    _dhMakeIndep xopus-$debRev blank "v $debRev of js+assets files"
 
     _postAdjustmentsForStaticProjects xopus 'usr/share/xopus4' $debRev 
 
@@ -235,7 +233,9 @@ function xopus()
 
 funcion solr4()
 {
-  local ver=4.4.0
+
+  clean_dirs
+  local ver=4.5.1
   local debVer=4
   local url=http://apache.vianett.no/lucene/solr/$ver
   local tgz=solr-$ver.tgz
@@ -260,14 +260,20 @@ funcion solr4()
 
     tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
 
-    _dhMakeIndep solr-$debVer apache "v $debVer solr jetty pack"
+    _dhMakeIndep solr-$debVer apache "v $debVer of solr+jetty pack"
 
     _postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
-  }
+}
 
-
+function clean_dirs()
+{
+  (
+  cd work
+  ls -l | awk ' /^d/ {print $9}' | xargs rm -rf
+  )
+}
 
 
 echo
-echo Now call one of : 'prep', 'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
+echo Now call one of : 'prep',  'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
 
