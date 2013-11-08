@@ -166,7 +166,7 @@ function epub30schemas()
     local svn=http://epub-revision.googlecode.com
     local ep3SrcDir=$WORKING_DIR/epub30schemas-$debRev
     local epubOrigTar=epub30schemas_$debRev.orig.tar.gz
-    local extFilename=epub30-schemas.tar.gz
+    local extFilename=epub-schemas.tar.gz
 
     (
     cd $WORKING_DIR && \
