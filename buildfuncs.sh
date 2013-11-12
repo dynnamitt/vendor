@@ -123,7 +123,7 @@ function prep()
         unzip wget build-essential \
         autoconf automake autotools-dev \
         dh-make debhelper devscripts fakeroot \
-        xutils lintian pbuilder
+        xutils lintian pbuilder dupload
 }
 
 
@@ -235,13 +235,12 @@ funcion solr4()
 {
 
   clean_dirs
-  local ver=4.5.1
-  local debVer=4
-  local url=http://apache.vianett.no/lucene/solr/$ver
-  local tgz=solr-$ver.tgz
+  local debVer=4.5.1
+  local url=http://apache.vianett.no/lucene/solr/$debVer
+  local tgz=solr-$debVer.tgz
   local solrSrcDir=$WORKING_DIR/solr-$debVer
   local solrOrigTar=solr_$debVer.orig.tar.gz
-  local topDirInZip=solr-$ver
+  local topDirInZip=solr-$debVer
 
   (
   cd $WORKING_DIR && \
