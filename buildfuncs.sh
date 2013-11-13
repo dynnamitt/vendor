@@ -309,4 +309,6 @@ function clean_dirs()
 
 echo
 echo Now call one of : 'prep',  'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
+echo
+echo  .. når pakker er ok , kjør : dupload work 
 
