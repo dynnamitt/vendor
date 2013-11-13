@@ -123,7 +123,7 @@ function prep()
         unzip wget build-essential \
         autoconf automake autotools-dev \
         dh-make debhelper devscripts fakeroot \
-        xutils lintian pbuilder dupload
+        xutils lintian pbuilder dupload maven
 }
 
 
@@ -184,6 +184,40 @@ function epub30schemas()
       "v $debRev of schema-set from the standards body"
 
     _postAdjustmentsForStaticProjects epub30schemas 'usr/share/epub30' $debRev 
+
+}
+
+
+#------------#
+#  saxon9ee  #
+#------------#
+function saxon9ee()
+{
+  clean_dirs
+  local name=saxon9ee
+  local saxonArtifactDir=maven.$name
+  local unpack_dir=${name}_unpacked
+  local jar=$unpack_dir/${name}.jar
+  local SAXON_VER="9-5-1-2J"
+  local zip="SaxonEE${SAXON_VER}.zip"
+  local url="http://www.saxonica.com/download"
+
+  mkdir -p $WORKING_DIR/$saxonArtifactDir
+
+  mkdir -p $unpack_dir
+    (
+    cd $WORKING_DIR && \
+    if [ ! -f $zip ]
+    then
+        wget "$url/$zip"
+    fi
+    
+    unzip -q $zip -d $unpack_dir
+
+    mvn install:install-file -Dmaven.repo.local=$saxonArtifactDir \
+      -Dfile=$jar -DgroupId=vendor.$name \
+      -DartifactId=vendor.$name -Dversion=$SAXON_VER -Dpackaging=jar
+      )
 
 }
 
