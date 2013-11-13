@@ -195,7 +195,7 @@ function saxon9ee()
 {
   clean_dirs
   local name=saxon9ee
-  local saxonArtifactDir=maven.$name
+  local saxonArtifactDir=maven
   local unpack_dir=${name}_unpacked
   local jar=$unpack_dir/${name}.jar
   local SAXON_VER="9-5-1-2J"

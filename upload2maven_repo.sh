@@ -1,0 +1,3 @@
+#!/bin/make -f
+
+scp 
