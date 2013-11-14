@@ -99,7 +99,7 @@ function _postAdjustmentsForStaticProjects()
 
     echo ---- final STEP .. packing $project ----
 
-    (cd $projectSrcDir; dpkg-buildpackage -us -uc)
+    (cd $projectSrcDir; dpkg-buildpackage  -us -uc)
 }
 
 
@@ -279,8 +279,8 @@ funcion solr4()
   local ver=4.5.1
   local url=http://apache.vianett.no/lucene/solr/$ver
   local tgz=solr-$ver.tgz
-  local solrSrcDir=$WORKING_DIR/solr-$ver-$debRev
-  local solrOrigTar=solr-${ver}_$debRev.orig.tar.gz
+  local solrSrcDir=$WORKING_DIR/solr-$ver
+  local solrOrigTar=solr_${ver}.orig.tar.gz
   local topDirInZip=solr-$ver
 
   (
@@ -292,7 +292,7 @@ funcion solr4()
     tar -xzf $tgz
     )
 
-
+    # silly but this is needed pga rights
     (cd $WORKING_DIR/$topDirInZip && \
       tar -czf ../$solrOrigTar *)
 
@@ -301,9 +301,9 @@ funcion solr4()
 
     tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
 
-    _dhMakeIndep solr-$ver-$debRev apache "v $ver($debRev) of solr+jetty pack"
+    _dhMakeIndep solr-$ver apache "v $ver($debRev) of solr+jetty pack"
 
-    _postAdjustmentsForStaticProjects solr 'opt/solr/4.x' $ver-$debRev
+    _postAdjustmentsForStaticProjects solr 'opt/solr/4.x' $ver
 }
 
 function clean_dirs()
