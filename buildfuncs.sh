@@ -92,7 +92,7 @@ function _postAdjustmentsForStaticProjects()
     #inject .install file
     cat <(cd $projectSrcDir; ls -1 $lsParams \
         | grep -v debian \
-        | awk "{print \$1 \" $dest/$ver\"}" \
+        | awk "{print \$1 \" $dest\"}" \
         ) > $instFile
 
     cat $instFile
@@ -183,7 +183,7 @@ function epub30schemas()
     _dhMakeIndep epub30schemas-$debRev lgpl \
       "v $debRev of schema-set from the standards body"
 
-    _postAdjustmentsForStaticProjects epub30schemas 'usr/share/epub30' $debRev 
+    _postAdjustmentsForStaticProjects epub30schemas "usr/share/epub30/$debRev" $debRev 
 
 }
 
@@ -242,10 +242,11 @@ function xopus()
     if [ ! -f $zip ]
     then
         wget "$url/$zip" 
-        unzip -q $zip
     fi
+    unzip -q $zip
     )
     
+
     (
         cd $WORKING_DIR/$topDirInZip
         # patch
@@ -264,29 +265,33 @@ function xopus()
 
     _dhMakeIndep xopus-$debRev blank "v $debRev of js+assets files"
 
-    _postAdjustmentsForStaticProjects xopus 'usr/share/xopus4' $debRev 
+    _postAdjustmentsForStaticProjects xopus "usr/share/xopus4/$debRev" $debRev 
 
 }
-
+#---------#
+#  solr4  #
+#---------#
 funcion solr4()
 {
 
   clean_dirs
-  local debVer=4.5.1
-  local url=http://apache.vianett.no/lucene/solr/$debVer
-  local tgz=solr-$debVer.tgz
-  local solrSrcDir=$WORKING_DIR/solr-$debVer
-  local solrOrigTar=solr_$debVer.orig.tar.gz
-  local topDirInZip=solr-$debVer
+  local debRev=2
+  local ver=4.5.1
+  local url=http://apache.vianett.no/lucene/solr/$ver
+  local tgz=solr-$ver.tgz
+  local solrSrcDir=$WORKING_DIR/solr-$ver-$debRev
+  local solrOrigTar=solr-${ver}_$debRev.orig.tar.gz
+  local topDirInZip=solr-$ver
 
   (
   cd $WORKING_DIR && \
     if [ ! -f $tgz ]
     then
       wget "$url/$tgz" 
-      tar -xvzf $tgz
     fi
+    tar -xzf $tgz
     )
+
 
     (cd $WORKING_DIR/$topDirInZip && \
       tar -czf ../$solrOrigTar *)
@@ -296,9 +301,9 @@ funcion solr4()
 
     tar -xf $WORKING_DIR/$solrOrigTar -C $solrSrcDir
 
-    _dhMakeIndep solr-$debVer apache "v $debVer of solr+jetty pack"
+    _dhMakeIndep solr-$ver-$debRev apache "v $ver($debRev) of solr+jetty pack"
 
-    _postAdjustmentsForStaticProjects solr 'opt/solr' '4.x'
+    _postAdjustmentsForStaticProjects solr 'opt/solr/4.x' $ver-$debRev
 }
 
 function clean_dirs()
