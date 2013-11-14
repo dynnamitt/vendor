@@ -13,10 +13,12 @@ echo
 echo Klar for upload av $SRC
 echo
 
-read -p "Hva er server navn (packages_prod) :" SRV_INP
+read -p "Hva er server navn (${USER}@packages_prod) :" SRV_INP
 read -p "Hva mappe destinasjon (.) :" DIRDEST_INP
 
 SRV=${SRV_INP:-${DEFAULT_SRV}}
 DIRDEST=${DIRDEST_INP:-${DEFAULT_DIRDEST}}
 
 scp $SRC $SRV:$DIRDEST 
+
+ssh $SRV "cd $DIRDEST && tar -xzvf $(basename $SRC)"
