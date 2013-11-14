@@ -298,7 +298,7 @@ funcion solr4()
 
     _dhMakeIndep solr-$debVer apache "v $debVer of solr+jetty pack"
 
-    _postAdjustmentsForStaticProjects solr 'opt/solr' $debVer
+    _postAdjustmentsForStaticProjects solr 'opt/solr' '4.x'
 }
 
 function clean_dirs()
