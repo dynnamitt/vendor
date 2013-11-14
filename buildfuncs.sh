@@ -195,29 +195,32 @@ function saxon9ee()
 {
   clean_dirs
   local name=saxon9ee
-  local saxonArtifactDir=maven
+  local localm2repo=maven
   local unpack_dir=${name}_unpacked
   local jar=$unpack_dir/${name}.jar
   local SAXON_VER="9-5-1-2J"
   local zip="SaxonEE${SAXON_VER}.zip"
   local url="http://www.saxonica.com/download"
+  local target_file=maven_vendor_all.tar.gz
 
-  mkdir -p $WORKING_DIR/$saxonArtifactDir
-
+  mkdir -p $WORKING_DIR/$localm2repo
+  rm -f $WORKING_DIR/$target_file
   mkdir -p $unpack_dir
-    (
-    cd $WORKING_DIR && \
-    if [ ! -f $zip ]
-    then
-        wget "$url/$zip"
-    fi
-    
-    unzip -q $zip -d $unpack_dir
+  (
+  cd $WORKING_DIR 
+  if [ ! -f $zip ]
+  then
+      wget "$url/$zip"
+  fi
+  
+  unzip -q $zip -d $unpack_dir
 
-    mvn install:install-file -Dmaven.repo.local=$saxonArtifactDir \
-      -Dfile=$jar -DgroupId=vendor.$name \
-      -DartifactId=vendor.$name -Dversion=$SAXON_VER -Dpackaging=jar
-      )
+  mvn install:install-file -Dmaven.repo.local=$localm2repo \
+    -Dfile=$jar -DgroupId=vendor.$name \
+    -DartifactId=vendor.$name -Dversion=$SAXON_VER -Dpackaging=jar
+
+  tar -czf $target_file $localm2repo/vendor
+  )
 
 }
 
@@ -308,7 +311,7 @@ function clean_dirs()
 
 
 echo
-echo Now call one of : 'prep',  'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
+echo Now call one of : 'prep', 'saxon9ee', 'xopus', 'epub30schemas' , 'fontawesome', 'solr4'
 echo
 echo  .. når pakker er ok , kjør : dupload work 
 
