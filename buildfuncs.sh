@@ -133,7 +133,7 @@ function prep()
 #---------------#
 function fontawesome()
 {
-    clean_dirs
+    clean_dirs 'fontawesome*'
     local fontawesomeVer=`_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git`
     local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
     local instFile="$faSrcDir/debian/fontawesome.install"
@@ -154,13 +154,71 @@ function fontawesome()
     (cd $faSrcDir; dpkg-buildpackage -us -uc)
 }
 
+#----------#
+#  xopus4  #
+#----------#
+function xopus()
+{
+    clean_dirs 'xopus*'
+    local url=http://xopus.com/files/download
+    local debRev=4.4.1
+    local zip="Xopus $debRev.zip"
+    local topDirInZip=Xopus
+    local xopusSrcDir=$WORKING_DIR/xopus-$debRev
+    local xopusOrigTar=xopus_$debRev.orig.tar.gz
+
+
+
+    (
+    cd $WORKING_DIR && \
+    if [ ! -f $zip ]
+    then
+        wget "$url/$zip" 
+    fi
+    unzip -qo $zip
+    )
+    
+    # tight with fontawesome
+    # check if FA file is there..
+    if stat -t $WORKING_DIR/fontawesome*dsc >/dev/null 2>&1; then
+      fa_dsc_file=$(cd $WORKING_DIR && ls fontawesome*dsc)
+      fa_ver=$(echo $fa_dsc_file | sed -e 's/.*_\([^-]\+\)-.*/\1/')
+
+      echo -e "\n\n _____ using /font-awesome/$fa_ver ____ \n\n"
+
+      (
+      cd $WORKING_DIR/$topDirInZip
+      # patch
+
+      pf="xopus/xopus.html"
+      sed -e '/<\/head>/r ../../xopus-html-patch.htm' -e 'x;$G' "$pf" \
+        | sed -e "s%\(\\/font-awesome\\/\)\\[\\[v\\]\\]%\1$fa_ver%" \
+        > "$pf".patched
+      mv "$pf".patched "$pf"
+      # tar it ALL into orig.
+      tar -czf ../$xopusOrigTar *
+      )
+
+      rm -rf $WORKING_fonDIR/$topDirInZip 
+      mkdir -p $xopusSrcDir
+      tar -xf $WORKING_DIR/$xopusOrigTar -C $xopusSrcDir
+
+
+      _dhMakeIndep xopus-$debRev blank "v $debRev of js+assets files"
+
+      _postAdjustmentsForStaticProjects xopus "usr/share/xopus4/$debRev" $debRev 
+    else
+      echo Kjør fontawesome først
+    fi
+
+}
 
 #-------------------#
 #  epub3.0 schemas  #
 #-------------------#
 function epub30schemas()
 {
-    clean_dirs
+    clean_dirs 'epub*'
     local rev=301
     local debRev=3.0.1
     local svn=http://epub-revision.googlecode.com
@@ -193,7 +251,7 @@ function epub30schemas()
 #------------#
 function saxon9ee()
 {
-  clean_dirs
+  clean_dirs 'saxon*'
   local name=saxon9ee
   local localm2repo=maven
   local unpack_dir=${name}_unpacked
@@ -224,57 +282,13 @@ function saxon9ee()
 
 }
 
-#----------#
-#  xopus4  #
-#----------#
-function xopus()
-{
-    clean_dirs
-    local url=http://xopus.com/files/download
-    local debRev=4.4.1
-    local zip="Xopus $debRev.zip"
-    local topDirInZip=Xopus
-    local xopusSrcDir=$WORKING_DIR/xopus-$debRev
-    local xopusOrigTar=xopus_$debRev.orig.tar.gz
-
-    (
-    cd $WORKING_DIR && \
-    if [ ! -f $zip ]
-    then
-        wget "$url/$zip" 
-    fi
-    unzip -q $zip
-    )
-    
-
-    (
-        cd $WORKING_DIR/$topDirInZip
-        # patch
-        pf="xopus/xopus.html"
-        sed -e '/<\/head>/r ../../xopus-html-patch.htm' -e 'x;$G' "$pf" \
-            > "$pf".patched
-        mv "$pf".patched "$pf"
-        # tar it ALL into orig.
-        tar -czf ../$xopusOrigTar *
-    )
-
-    rm -rf $WORKING_DIR/$topDirInZip 
-    mkdir -p $xopusSrcDir
-    tar -xf $WORKING_DIR/$xopusOrigTar -C $xopusSrcDir
-    
-
-    _dhMakeIndep xopus-$debRev blank "v $debRev of js+assets files"
-
-    _postAdjustmentsForStaticProjects xopus "usr/share/xopus4/$debRev" $debRev 
-
-}
 #---------#
 #  solr4  #
 #---------#
 funcion solr4()
 {
 
-  clean_dirs
+  clean_dirs 'solr*'
   local debRev=2
   local ver=4.5.1
   local url=http://apache.vianett.no/lucene/solr/$ver
@@ -310,7 +324,7 @@ function clean_dirs()
 {
   (
   cd work
-  ls -l | awk ' /^d/ {print $9}' | xargs rm -rf
+  ls -l $1 2>/dev/null | awk ' /^d/ {print $9}' | xargs rm -rf
   )
 }
 
