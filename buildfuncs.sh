@@ -275,7 +275,7 @@ function saxon9ee()
 
   mvn install:install-file -Dmaven.repo.local=$localm2repo \
     -Dfile=$jar -DgroupId=vendor.$name \
-    -DartifactId=vendor.$name -Dversion=$SAXON_VER -Dpackaging=jar
+    -DartifactId=vendor-$name -Dversion=$SAXON_VER -Dpackaging=jar
 
   tar -czf $target_file $localm2repo/vendor
   )
