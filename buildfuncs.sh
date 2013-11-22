@@ -17,6 +17,7 @@ function _makeOrigTarFromGit()
 {
     local prefix=$1
     local repo=$2
+    local selectedTag=$3
     local gitWD=$prefix-git
     local dir=$WORKING_DIR/$gitWD
 
@@ -27,23 +28,26 @@ function _makeOrigTarFromGit()
         (cd $dir && git fetch >> /dev/null )
     fi
 
-    latestTag=$( cd $dir && git tag -l | tail -n1 )
-    latestVer=${latestTag#[a-zA-Z]}
+
+    selectedVer=${selectedTag#[a-zA-Z]}
 
     # tar.gz via git
     (
     cd $dir && \
         git archive --format=tar.gz \
-        --prefix="$prefix-$latestVer/" $latestTag \
-        > ../$prefix'_'$latestVer.orig.tar.gz
+        --prefix="$prefix-$selectedVer/" $selectedTag \
+        > ../$prefix'_'$selectedVer.orig.tar.gz
     )
 
     # untar
     (
     cd $WORKING_DIR && \
-        tar -xf $prefix'_'$latestVer.orig.tar.gz
+        tar -xf $prefix'_'$selectedVer.orig.tar.gz
     )
 
+    # dump back some fresh info
+    latestTag=$( cd $dir && git tag -l | tail -n1 )
+    latestVer=${latestTag#[a-zA-Z]}
     echo "$latestVer"
 
 }
@@ -126,27 +130,30 @@ function prep()
         xutils lintian pbuilder dupload maven
 }
 
-
-
+FA_DIR=font-awesome
+FA_PREFIX=usr/share/$FA_DIR
 #---------------#
 #  fontawesome  #
 #---------------#
 function fontawesome()
 {
     clean_dirs 'fontawesome*'
-    local fontawesomeVer=`_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git`
-    local faSrcDir="$WORKING_DIR/fontawesome-$fontawesomeVer"
+    local ver=3.2.1
+    local fontawesomeLastVer=$(_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git v$ver)
+    local faSrcDir="$WORKING_DIR/fontawesome-$ver"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
-    _dhMakeIndep fontawesome-$fontawesomeVer gpl "v $fontawesomeVer of css+icon framework"
+    _dhMakeIndep fontawesome-$ver gpl "v $ver of css+icon framework"
     
 
-    echo  ---- POSTFIX STEPs for fontawesome $fontawesomeVer ----
+    echo -e "\n\n Latest is $fontawesomeLastVer \n\n"
+
+    echo  ---- POSTFIX STEPs for fontawesome v $ver ----
     
     dirs=( $(cd $faSrcDir; ls -l | awk ' /^d/ {print $9}' | grep -v debian| grep -v src) )
     for d in ${dirs[@]}
     do 
-      echo "$d/* usr/share/Font-Awesome/$fontawesomeVer/$d" >> $instFile
+      echo "$d/* $FA_PREFIX/$ver/$d" >> $instFile
     done
     cat $instFile
 
@@ -192,7 +199,7 @@ function xopus()
 
       pf="xopus/xopus.html"
       sed -e '/<\/head>/r ../../xopus-html-patch.htm' -e 'x;$G' "$pf" \
-        | sed -e "s%\(\\/font-awesome\\/\)\\[\\[v\\]\\]%\1$fa_ver%" \
+        | sed -e "s%\(\\/$FA_DIR\\/\)\\[\\[v\\]\\]%\1$fa_ver%" \
         > "$pf".patched
       mv "$pf".patched "$pf"
       # tar it ALL into orig.
