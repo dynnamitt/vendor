@@ -130,23 +130,25 @@ function prep()
         xutils lintian pbuilder dupload maven
 }
 
-FA_DIR=font-awesome
-FA_PREFIX=usr/share/$FA_DIR
 #---------------#
 #  fontawesome  #
 #---------------#
+FA_DIR=font-awesome
+FA_PREFIX=usr/share/$FA_DIR
+
 function fontawesome()
 {
-    clean_dirs 'fontawesome*'
+    clean_dirs 'fontawesome'
     local ver=3.2.1
     local fontawesomeLastVer=$(_makeOrigTarFromGit fontawesome https://github.com/FortAwesome/Font-Awesome.git v$ver)
     local faSrcDir="$WORKING_DIR/fontawesome-$ver"
     local instFile="$faSrcDir/debian/fontawesome.install"
 
+    echo -e "\n\n Latest is $fontawesomeLastVer, we ask for $ver \n\n"
+
     _dhMakeIndep fontawesome-$ver gpl "v $ver of css+icon framework"
     
 
-    echo -e "\n\n Latest is $fontawesomeLastVer \n\n"
 
     echo  ---- POSTFIX STEPs for fontawesome v $ver ----
     
@@ -166,7 +168,7 @@ function fontawesome()
 #----------#
 function xopus()
 {
-    clean_dirs 'xopus*'
+    clean_dirs 'xopus'
     local url=http://xopus.com/files/download
     local debRev=4.4.1
     local zip="Xopus $debRev.zip"
@@ -225,7 +227,7 @@ function xopus()
 #-------------------#
 function epub30schemas()
 {
-    clean_dirs 'epub*'
+    clean_dirs 'epub'
     local rev=301
     local debRev=3.0.1
     local svn=http://epub-revision.googlecode.com
@@ -258,7 +260,7 @@ function epub30schemas()
 #------------#
 function saxon9ee()
 {
-  clean_dirs 'saxon*'
+  clean_dirs 'saxon'
   local name=saxon9ee
   local localm2repo=maven
   local unpack_dir=${name}_unpacked
@@ -295,7 +297,7 @@ function saxon9ee()
 funcion solr4()
 {
 
-  clean_dirs 'solr*'
+  clean_dirs 'solr'
   local debRev=2
   local ver=4.5.1
   local url=http://apache.vianett.no/lucene/solr/$ver
@@ -331,7 +333,12 @@ function clean_dirs()
 {
   (
   cd work
-  ls -l $1 2>/dev/null | awk ' /^d/ {print $9}' | xargs rm -rf
+  echo -e "\ncleaning:"
+  ls -l \
+    | awk " tolower(\$9) ~ /$1/ { print }" \
+    | awk ' /^d/ {print $9}' \
+    | xargs rm -rf
+  echo
   )
 }
 
