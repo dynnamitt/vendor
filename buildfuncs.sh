@@ -265,7 +265,7 @@ function saxon9ee()
   local localm2repo=maven
   local unpack_dir=${name}_unpacked
   local jar=$unpack_dir/${name}.jar
-  local SAXON_VER="9-5-1-2J"
+  local SAXON_VER="9-5-1-4J"
   local zip="SaxonEE${SAXON_VER}.zip"
   local url="http://www.saxonica.com/download"
   local target_file=maven_vendor_all.tar.gz
