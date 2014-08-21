@@ -170,7 +170,7 @@ function xopus()
 {
     clean_dirs 'xopus'
     local url=http://xopus.com/files/download
-    local debRev=4.4.1
+    local debRev=5.2
     local zip="Xopus $debRev.zip"
     local topDirInZip=Xopus
     local xopusSrcDir=$WORKING_DIR/xopus-$debRev
@@ -184,7 +184,8 @@ function xopus()
     then
         wget "$url/$zip" 
     fi
-    unzip -qo $zip
+    mkdir $topDirInZip
+    unzip -qo -d $topDirInZip $zip
     )
     
     # tight with fontawesome
