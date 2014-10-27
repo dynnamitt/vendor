@@ -22,3 +22,4 @@ Apache setup:
 		allow from all
 	</Directory>
 
+.
